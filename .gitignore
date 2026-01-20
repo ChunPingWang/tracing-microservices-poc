@@ -1,0 +1,60 @@
+# Weather Tracing PoC - Git Ignore
+
+# ===== Java / Gradle =====
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+*.log
+hs_err_pid*
+
+# ===== Node.js / TypeScript =====
+node_modules/
+dist/
+*.local
+.npm
+.eslintcache
+*.tsbuildinfo
+
+# ===== IDE =====
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*.swo
+*~
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Environment =====
+.env
+.env.*
+!.env.example
+
+# ===== Testing =====
+coverage/
+*.lcov
+test-results/
+playwright-report/
+
+# ===== Docker =====
+*.log
+
+# ===== Kubernetes =====
+*.secret.yaml
+kubeconfig*
+*.key
+*.crt
+*.pem
+
+# ===== Temporary =====
+*.tmp
+*.temp
+*.bak

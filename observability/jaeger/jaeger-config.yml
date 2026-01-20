@@ -1,0 +1,29 @@
+# Jaeger All-in-One Configuration
+# For production, use distributed deployment
+
+collector:
+  otlp:
+    enabled: true
+    grpc:
+      host-port: 0.0.0.0:4317
+    http:
+      host-port: 0.0.0.0:4318
+
+query:
+  base-path: /
+  ui-config: |
+    {
+      "dependencies": {
+        "menuEnabled": true
+      },
+      "archiveEnabled": false,
+      "tracking": {
+        "gaID": null
+      }
+    }
+
+# In-memory storage for PoC (use Elasticsearch/Cassandra for production)
+storage:
+  type: memory
+  memory:
+    max-traces: 100000

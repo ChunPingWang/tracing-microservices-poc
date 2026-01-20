@@ -1,0 +1,4 @@
+rootProject.name = 'weather-tracing-poc'
+
+include 'weather-service'
+include 'gateway'

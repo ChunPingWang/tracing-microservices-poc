@@ -1,50 +1,257 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+==================
+Version change: N/A (initial) → 1.0.0
+Modified principles: N/A (initial creation)
+Added sections:
+  - I. Test-Driven Development (TDD)
+  - II. Behavior-Driven Development (BDD)
+  - III. Domain-Driven Design (DDD)
+  - IV. SOLID Principles
+  - V. Hexagonal Architecture
+  - VI. Code Quality Standards
+  - Architectural Constraints (Layer Rules)
+  - Development Workflow (Quality Gates)
+Removed sections: N/A
+Templates requiring updates:
+  - .specify/templates/plan-template.md: ✅ updated (Constitution Check aligned)
+  - .specify/templates/spec-template.md: ✅ compatible
+  - .specify/templates/tasks-template.md: ✅ compatible
+Follow-up TODOs: None
+==================
+-->
+
+# Weather Observability POC Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Test-Driven Development (TDD) (NON-NEGOTIABLE)
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+All production code MUST be written following the TDD cycle:
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+1. **Red**: Write a failing test that defines expected behavior BEFORE writing implementation
+2. **Green**: Write the minimum code necessary to make the test pass
+3. **Refactor**: Improve code structure while keeping tests green
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+Non-negotiable rules:
+- Tests MUST be written and MUST fail before implementation begins
+- Each test MUST verify a single behavior or requirement
+- Test names MUST clearly describe the expected behavior
+- Unit tests MUST be isolated with no external dependencies (use test doubles)
+- Code coverage targets: minimum 80% line coverage, 100% for domain layer
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### II. Behavior-Driven Development (BDD)
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+All user-facing features MUST be specified using BDD practices:
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- User stories MUST follow the format: "As a [role], I want [capability], so that [benefit]"
+- Acceptance criteria MUST use Given-When-Then syntax
+- Feature specifications MUST be written before implementation planning
+- Integration tests MUST validate acceptance scenarios end-to-end
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+Scenario format:
+```gherkin
+Given [initial context/state]
+When [action is performed]
+Then [expected outcome is observed]
+```
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### III. Domain-Driven Design (DDD)
+
+The domain layer is the heart of the system and MUST:
+
+- Contain all business logic and rules
+- Use Ubiquitous Language aligned with business stakeholders
+- Define clear Bounded Contexts with explicit boundaries
+- Implement domain concepts as:
+  - **Entities**: Objects with identity that persists over time
+  - **Value Objects**: Immutable objects defined by their attributes
+  - **Aggregates**: Clusters of entities and value objects with a root entity
+  - **Domain Services**: Stateless operations that don't belong to entities
+  - **Domain Events**: Records of significant business occurrences
+
+Domain layer MUST NOT:
+- Depend on infrastructure concerns (databases, frameworks, external services)
+- Contain technical implementation details
+- Import from application or infrastructure layers
+
+### IV. SOLID Principles
+
+All code MUST adhere to SOLID principles:
+
+- **Single Responsibility (SRP)**: Each class/module MUST have exactly one reason to change
+- **Open/Closed (OCP)**: Code MUST be open for extension, closed for modification
+- **Liskov Substitution (LSP)**: Subtypes MUST be substitutable for their base types
+- **Interface Segregation (ISP)**: Clients MUST NOT depend on interfaces they don't use
+- **Dependency Inversion (DIP)**: High-level modules MUST NOT depend on low-level modules;
+  both MUST depend on abstractions
+
+### V. Hexagonal Architecture (Ports & Adapters)
+
+The system MUST follow hexagonal (ports & adapters) architecture with three layers:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Infrastructure Layer                      │
+│   (Frameworks, Databases, External Services, UI, CLI)       │
+│   ┌─────────────────────────────────────────────────────┐   │
+│   │               Application Layer                      │   │
+│   │   (Use Cases, Application Services, Orchestration)  │   │
+│   │   ┌─────────────────────────────────────────────┐   │   │
+│   │   │            Domain Layer                      │   │   │
+│   │   │   (Entities, Value Objects, Domain Logic)   │   │   │
+│   │   └─────────────────────────────────────────────┘   │   │
+│   └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Layer Rules**:
+
+| From Layer      | Can Access          | Via                    |
+|-----------------|---------------------|------------------------|
+| Infrastructure  | Application, Domain | Direct import          |
+| Application     | Domain              | Direct import          |
+| Application     | Infrastructure      | Interface (Port) ONLY  |
+| Domain          | Infrastructure      | Interface (Port) ONLY  |
+| Domain          | Application         | NEVER                  |
+
+**Ports (Interfaces)**:
+- Defined in the domain or application layer
+- Describe WHAT the system needs, not HOW it's implemented
+- Named by business capability (e.g., `WeatherDataRepository`, `NotificationSender`)
+
+**Adapters (Implementations)**:
+- Located in the infrastructure layer
+- Implement port interfaces
+- Named by technology (e.g., `PostgresWeatherRepository`, `EmailNotificationSender`)
+
+### VI. Code Quality Standards
+
+All code MUST meet these quality standards:
+
+**Readability**:
+- Code MUST be self-documenting with clear naming
+- Comments MUST explain "why", not "what"
+- Functions MUST be small (< 20 lines preferred, < 50 lines maximum)
+- Cyclomatic complexity MUST NOT exceed 10 per function
+
+**Maintainability**:
+- No code duplication (DRY principle)
+- No dead code or commented-out code in commits
+- Consistent formatting enforced by linters
+- All dependencies MUST be explicitly declared
+
+**Security**:
+- No secrets in code or version control
+- Input validation at system boundaries
+- Output encoding to prevent injection attacks
+- Principle of least privilege for all operations
+
+## Architectural Constraints
+
+### Layer Separation Rules
+
+**Directory Structure** (MUST follow):
+```
+src/
+├── domain/           # Inner layer - business logic
+│   ├── entities/
+│   ├── value_objects/
+│   ├── services/
+│   ├── events/
+│   └── ports/        # Interfaces for external dependencies
+├── application/      # Middle layer - use cases
+│   ├── use_cases/
+│   ├── services/
+│   ├── dto/          # Data Transfer Objects
+│   └── ports/        # Interfaces for infrastructure
+└── infrastructure/   # Outer layer - frameworks & tools
+    ├── adapters/     # Port implementations
+    ├── persistence/
+    ├── external/
+    ├── web/
+    └── cli/
+```
+
+### Data Mapping Requirements
+
+Data MUST be transformed via mappers when crossing layer boundaries:
+
+- **Infrastructure → Application**: Raw data → DTO via mapper
+- **Application → Domain**: DTO → Domain Entity/Value Object via mapper
+- **Domain → Application**: Domain Entity → DTO via mapper
+- **Application → Infrastructure**: DTO → External format via mapper
+
+Mapper rules:
+- Each mapper MUST be a separate, testable unit
+- Mappers MUST NOT contain business logic
+- Mappers MUST handle null/missing data gracefully
+- Mappers MUST validate data structure during transformation
+
+## Development Workflow
+
+### Quality Gates
+
+All code changes MUST pass these gates before merge:
+
+1. **Pre-commit**:
+   - Linting passes with zero warnings
+   - Formatting is correct
+   - No secrets detected
+
+2. **Test Gate**:
+   - All unit tests pass
+   - All integration tests pass
+   - Code coverage meets threshold (80% minimum)
+
+3. **Review Gate**:
+   - Code review by at least one team member
+   - Architecture compliance verified
+   - Test quality reviewed (not just coverage)
+
+4. **Pre-merge**:
+   - All CI checks pass
+   - No merge conflicts
+   - Branch is up to date with main
+
+### Testing Pyramid
+
+Tests MUST follow the testing pyramid distribution:
+
+```
+        /\
+       /  \     E2E Tests (< 10%)
+      /────\    - Critical user journeys only
+     /      \
+    /────────\  Integration Tests (20-30%)
+   /          \ - API contracts, DB operations
+  /────────────\
+ /              \ Unit Tests (60-70%)
+/________________\ - All business logic, mappers
+```
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+### Amendment Process
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+1. Propose changes via documented RFC (Request for Comments)
+2. Review period: minimum 3 working days
+3. Approval required from technical lead
+4. Migration plan MUST be provided for breaking changes
+5. All affected code MUST be updated before amendment takes effect
+
+### Compliance Verification
+
+- All PRs MUST include a Constitution compliance checklist
+- Architecture Decision Records (ADRs) MUST reference relevant principles
+- Quarterly reviews MUST assess adherence to principles
+- Violations MUST be documented and addressed within one sprint
+
+### Versioning Policy
+
+This constitution follows semantic versioning:
+- **MAJOR**: Backward-incompatible principle changes or removals
+- **MINOR**: New principles added or existing principles expanded
+- **PATCH**: Clarifications, typo fixes, non-semantic changes
+
+**Version**: 1.0.0 | **Ratified**: 2026-01-20 | **Last Amended**: 2026-01-20
