@@ -8,8 +8,8 @@ group = 'com.example'
 version = '1.0.0'
 
 java {
-    sourceCompatibility = '21'
-    targetCompatibility = '21'
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
 }
 
 repositories {
@@ -28,7 +28,9 @@ dependencies {
     // OpenTelemetry
     implementation platform('io.opentelemetry:opentelemetry-bom:1.35.0')
     implementation 'io.opentelemetry:opentelemetry-api'
-    implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter:2.1.0'
+    implementation 'io.opentelemetry:opentelemetry-sdk'
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+    implementation 'io.opentelemetry:opentelemetry-sdk-extension-autoconfigure'
 
     // Micrometer for Prometheus metrics
     implementation 'io.micrometer:micrometer-registry-prometheus'

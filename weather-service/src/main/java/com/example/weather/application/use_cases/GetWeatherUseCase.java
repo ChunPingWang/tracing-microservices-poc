@@ -31,15 +31,6 @@ public class GetWeatherUseCase {
         this.mapper = mapper;
     }
 
-    // Constructor for testing without mapper
-    public GetWeatherUseCase(
-            WeatherDataRepository repository,
-            WeatherCalculationService calculationService) {
-        this.repository = repository;
-        this.calculationService = calculationService;
-        this.mapper = new WeatherMapper();
-    }
-
     /**
      * Execute the use case to get weather for a city.
      *

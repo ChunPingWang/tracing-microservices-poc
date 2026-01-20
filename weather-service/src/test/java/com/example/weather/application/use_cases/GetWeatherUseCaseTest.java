@@ -1,6 +1,7 @@
 package com.example.weather.application.use_cases;
 
 import com.example.weather.application.dto.WeatherResponse;
+import com.example.weather.application.mappers.WeatherMapper;
 import com.example.weather.domain.entities.City;
 import com.example.weather.domain.ports.WeatherDataRepository;
 import com.example.weather.domain.services.WeatherCalculationService;
@@ -38,7 +39,8 @@ class GetWeatherUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new GetWeatherUseCase(repository, calculationService);
+        WeatherMapper mapper = new WeatherMapper();
+        useCase = new GetWeatherUseCase(repository, calculationService, mapper);
         taipeiCity = new City(
             CityCode.of("TPE"),
             "台北",

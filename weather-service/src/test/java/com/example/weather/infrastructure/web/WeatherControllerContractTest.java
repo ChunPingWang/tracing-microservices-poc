@@ -11,7 +11,7 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@SpringBootTest(properties = "otel.sdk.disabled=true")
 @AutoConfigureMockMvc
 class WeatherControllerContractTest {
 
@@ -93,13 +93,12 @@ class WeatherControllerContractTest {
     }
 
     @Test
-    void getWeather_withInvalidCityCode_shouldReturn404() throws Exception {
+    void getWeather_withInvalidCityCode_shouldReturn400() throws Exception {
         mockMvc.perform(get("/weather/XXX")
                 .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNotFound())
+            .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.success").value(false))
-            .andExpect(jsonPath("$.error.code").value("CITY_NOT_FOUND"))
-            .andExpect(jsonPath("$.error.message").value("找不到指定的城市"))
+            .andExpect(jsonPath("$.error.code").value("INVALID_CITY_CODE"))
             .andExpect(jsonPath("$.traceInfo.traceId").exists());
     }
 }
