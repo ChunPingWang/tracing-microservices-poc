@@ -46,6 +46,19 @@ otel:
   service:
     name: ${OTEL_SERVICE_NAME:weather-service}
 
+# SpringDoc / Swagger Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+    try-it-out-enabled: true
+
 logging:
   level:
     com.example.weather: DEBUG
