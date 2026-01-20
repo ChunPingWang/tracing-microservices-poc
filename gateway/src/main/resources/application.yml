@@ -1,0 +1,48 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      routes:
+        - id: weather-service
+          uri: ${WEATHER_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/weather/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+        - id: weather-service-actuator
+          uri: ${WEATHER_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/actuator/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+# OpenTelemetry Configuration
+otel:
+  exporter:
+    otlp:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317}
+  service:
+    name: ${OTEL_SERVICE_NAME:gateway}
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.example.gateway: DEBUG

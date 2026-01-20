@@ -31,7 +31,16 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+| Principle | Compliance | Notes |
+|-----------|------------|-------|
+| I. TDD (NON-NEGOTIABLE) | [ ] Pass / [ ] Violation | Tests written before implementation? |
+| II. BDD | [ ] Pass / [ ] N/A | User stories in Given-When-Then format? |
+| III. DDD | [ ] Pass / [ ] N/A | Domain layer free of infrastructure concerns? |
+| IV. SOLID | [ ] Pass / [ ] Violation | Dependency inversion respected? |
+| V. Hexagonal Architecture | [ ] Pass / [ ] Violation | Layer boundaries respected? Ports/Adapters pattern? |
+| VI. Code Quality | [ ] Pass / [ ] Violation | Coverage >= 80%? Complexity <= 10? |
+| Layer Separation | [ ] Pass / [ ] Violation | Domain/App use Infrastructure via interfaces only? |
+| Data Mapping | [ ] Pass / [ ] Violation | Mappers used for cross-layer data transfer? |
 
 ## Project Structure
 

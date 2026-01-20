@@ -1,0 +1,273 @@
+openapi: 3.0.3
+info:
+  title: Weather Tracing PoC API
+  description: |
+    天氣查詢可觀測性展示系統 API
+
+    This API provides weather data for Taiwan cities with full distributed tracing support.
+    Every response includes trace information for observability demonstration.
+  version: 1.0.0
+  contact:
+    name: Weather Tracing PoC Team
+
+servers:
+  - url: http://localhost:8080/api
+    description: Local development (via Gateway)
+  - url: http://localhost:8081
+    description: Direct Weather Service access
+
+tags:
+  - name: Weather
+    description: Weather query operations
+  - name: Health
+    description: Health check endpoints
+
+paths:
+  /weather/{cityCode}:
+    get:
+      tags:
+        - Weather
+      summary: 查詢城市天氣
+      description: |
+        查詢指定城市的當前天氣資訊（模擬資料）。
+        每次查詢都會產生不同的溫度和雨量值（隨機變化）。
+        回應包含完整的追蹤資訊（Trace ID）。
+      operationId: getWeather
+      parameters:
+        - name: cityCode
+          in: path
+          required: true
+          description: 城市代碼
+          schema:
+            type: string
+            enum: [TPE, TXG, KHH]
+            example: TPE
+      responses:
+        '200':
+          description: 成功取得天氣資料
+          headers:
+            X-Trace-Id:
+              description: OpenTelemetry Trace ID
+              schema:
+                type: string
+                example: 4bf92f3577b34da6a3ce929d0e0e4736
+            X-Span-Id:
+              description: Current Span ID
+              schema:
+                type: string
+                example: 00f067aa0ba902b7
+            X-Request-Duration:
+              description: Request processing time in milliseconds
+              schema:
+                type: integer
+                example: 45
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeatherSuccessResponse'
+              example:
+                success: true
+                data:
+                  cityCode: TPE
+                  cityName: 台北
+                  temperature: 26.5
+                  rainfall: 12.3
+                  updatedAt: "2026-01-21T10:30:00Z"
+                traceInfo:
+                  traceId: 4bf92f3577b34da6a3ce929d0e0e4736
+                  spanId: 00f067aa0ba902b7
+                  duration: 45
+        '404':
+          description: 城市不存在
+          headers:
+            X-Trace-Id:
+              description: OpenTelemetry Trace ID
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: CITY_NOT_FOUND
+                  message: 找不到指定的城市
+                traceInfo:
+                  traceId: abc123def456789
+                  spanId: span123
+                  duration: 5
+        '500':
+          description: 內部錯誤
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /actuator/health:
+    get:
+      tags:
+        - Health
+      summary: 服務健康檢查
+      description: 檢查服務是否正常運行
+      operationId: healthCheck
+      responses:
+        '200':
+          description: 服務正常
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [UP, DOWN]
+                    example: UP
+                  components:
+                    type: object
+                    properties:
+                      db:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            example: UP
+                      diskSpace:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            example: UP
+
+  /actuator/prometheus:
+    get:
+      tags:
+        - Health
+      summary: Prometheus 指標
+      description: 取得 Prometheus 格式的應用程式指標
+      operationId: getPrometheusMetrics
+      responses:
+        '200':
+          description: Prometheus 格式指標
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: |
+                  # HELP http_server_requests_seconds
+                  # TYPE http_server_requests_seconds histogram
+                  http_server_requests_seconds_bucket{...}
+
+components:
+  schemas:
+    WeatherSuccessResponse:
+      type: object
+      required:
+        - success
+        - data
+        - traceInfo
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/WeatherData'
+        traceInfo:
+          $ref: '#/components/schemas/TraceInfo'
+
+    WeatherData:
+      type: object
+      required:
+        - cityCode
+        - cityName
+        - temperature
+        - rainfall
+        - updatedAt
+      properties:
+        cityCode:
+          type: string
+          description: 城市代碼
+          enum: [TPE, TXG, KHH]
+          example: TPE
+        cityName:
+          type: string
+          description: 城市名稱（中文）
+          example: 台北
+        temperature:
+          type: number
+          format: double
+          description: 氣溫（攝氏）
+          minimum: 15.0
+          maximum: 35.0
+          example: 26.5
+        rainfall:
+          type: number
+          format: double
+          description: 雨量（毫米）
+          minimum: 0.0
+          maximum: 50.0
+          example: 12.3
+        updatedAt:
+          type: string
+          format: date-time
+          description: 資料更新時間
+          example: "2026-01-21T10:30:00Z"
+
+    TraceInfo:
+      type: object
+      required:
+        - traceId
+        - spanId
+        - duration
+      properties:
+        traceId:
+          type: string
+          description: OpenTelemetry Trace ID (32 hex characters)
+          pattern: '^[a-f0-9]{32}$'
+          example: 4bf92f3577b34da6a3ce929d0e0e4736
+        spanId:
+          type: string
+          description: Current Span ID (16 hex characters)
+          pattern: '^[a-f0-9]{16}$'
+          example: 00f067aa0ba902b7
+        duration:
+          type: integer
+          format: int64
+          description: Request duration in milliseconds
+          minimum: 0
+          example: 45
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+        - traceInfo
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          $ref: '#/components/schemas/ErrorInfo'
+        traceInfo:
+          $ref: '#/components/schemas/TraceInfo'
+
+    ErrorInfo:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Error code
+          enum:
+            - CITY_NOT_FOUND
+            - INVALID_CITY_CODE
+            - SERVICE_UNAVAILABLE
+            - INTERNAL_ERROR
+          example: CITY_NOT_FOUND
+        message:
+          type: string
+          description: Error message (Chinese)
+          example: 找不到指定的城市
