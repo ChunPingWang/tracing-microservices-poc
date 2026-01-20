@@ -1,0 +1,17 @@
+# Kustomize Base Configuration
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: weather-tracing
+
+resources:
+  - namespace.yaml
+  - weather-service.yaml
+  - gateway.yaml
+  - frontend.yaml
+  - observability.yaml
+  - ingress.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: weather-tracing-poc
+  app.kubernetes.io/managed-by: kustomize

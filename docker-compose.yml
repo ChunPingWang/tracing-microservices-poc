@@ -1,26 +1,33 @@
-# Docker Compose for Mode 2: Full Stack Deployment
-# Runs all services including frontend, gateway, weather-service, and observability
+# Docker Compose - Weather Tracing PoC 完整部署
+# 包含所有應用程式服務與可觀測性堆疊
 
 version: '3.8'
 
 services:
-  # ===== Application Services =====
+  # ===== 應用程式服務 =====
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    image: frontend:latest
     container_name: frontend
     ports:
-      - "5173:80"
+      - "80:80"
     depends_on:
       - gateway
     networks:
       - app
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   gateway:
     build:
       context: ./gateway
       dockerfile: Dockerfile
+    image: gateway:latest
     container_name: gateway
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -35,11 +42,18 @@ services:
     networks:
       - app
       - observability
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   weather-service:
     build:
       context: ./weather-service
       dockerfile: Dockerfile
+    image: weather-service:latest
     container_name: weather-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -52,6 +66,12 @@ services:
     networks:
       - app
       - observability
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   # ===== Observability Stack =====
   otel-collector:

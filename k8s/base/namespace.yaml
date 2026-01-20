@@ -1,0 +1,8 @@
+# Kubernetes Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: weather-tracing
+  labels:
+    app.kubernetes.io/name: weather-tracing-poc
+    app.kubernetes.io/component: namespace
