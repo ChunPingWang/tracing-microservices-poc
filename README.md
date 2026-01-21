@@ -1000,12 +1000,26 @@ tracing-microservices-poc/
 │   └── grafana/              # Grafana 儀表板
 │
 ├── scripts/                  # 測試與部署腳本
+│   ├── start-services.sh     # 本地開發服務管理
 │   ├── integration-test.sh   # 完整整合測試
 │   ├── smoke-test.sh         # 快速煙霧測試
-│   └── start-services.sh     # 服務管理
+│   ├── kind-cluster.sh       # Kind 叢集管理
+│   ├── k8s-deploy.sh         # K8s 部署管理
+│   └── kind-config.yaml      # Kind 叢集配置
 │
-├── docker-compose.yml        # 完整堆疊部署
-└── docker-compose.dev.yml    # 開發環境（僅可觀測性）
+├── k8s/                      # Kubernetes 部署配置
+│   └── base/
+│       ├── kustomization.yaml
+│       ├── namespace.yaml
+│       ├── weather-service.yaml
+│       ├── gateway.yaml
+│       ├── frontend.yaml
+│       ├── observability.yaml
+│       └── ingress.yaml
+│
+├── docker-compose.yml        # Docker 完整堆疊部署
+├── docker-compose.dev.yml    # 開發環境（僅可觀測性）
+└── DEPLOYMENT.md             # 詳細部署指南
 ```
 
 ---
