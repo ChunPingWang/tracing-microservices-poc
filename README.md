@@ -63,17 +63,7 @@ cd tracing-microservices-poc
 
 ### 步驟二：啟動服務
 
-#### 方式 A：Docker Compose（推薦）
-
-```bash
-# 啟動所有服務
-docker compose up -d
-
-# 檢查狀態
-docker compose ps
-```
-
-#### 方式 B：本地開發
+#### 方式 A：本地開發（適合開發除錯）
 
 ```bash
 # 終端機 1：啟動可觀測性堆疊
@@ -87,6 +77,32 @@ docker compose -f docker-compose.dev.yml up -d
 
 # 終端機 4：啟動前端
 cd frontend && npm install && npm run dev
+```
+
+#### 方式 B：Docker Compose（推薦，一鍵啟動）
+
+```bash
+# 啟動所有服務
+docker compose up -d
+
+# 檢查狀態
+docker compose ps
+
+# 停止服務
+docker compose down
+```
+
+#### 方式 C：Kubernetes（適合模擬生產環境）
+
+```bash
+# 建立 Kind 叢集
+./scripts/kind-cluster.sh create
+./scripts/kind-cluster.sh ingress
+
+# 完整部署（建置 + 載入 + 部署）
+./scripts/k8s-deploy.sh all
+
+# 詳細說明請參考下方「Kubernetes 部署」章節
 ```
 
 ### 步驟三：存取服務
