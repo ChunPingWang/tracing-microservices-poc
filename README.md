@@ -65,6 +65,21 @@ cd tracing-microservices-poc
 
 #### 方式 A：本地開發（適合開發除錯）
 
+**一鍵啟動（推薦）：**
+
+```bash
+# 啟動所有服務
+./scripts/start-services.sh start
+
+# 檢查狀態
+./scripts/start-services.sh status
+
+# 停止所有服務
+./scripts/start-services.sh stop
+```
+
+**手動啟動（分開終端機）：**
+
 ```bash
 # 終端機 1：啟動可觀測性堆疊
 docker compose -f docker-compose.dev.yml up -d
@@ -104,6 +119,37 @@ docker compose down
 
 # 詳細說明請參考下方「Kubernetes 部署」章節
 ```
+
+#### 驗證部署：整合測試
+
+服務啟動後，執行整合測試確認系統正常運作：
+
+```bash
+# 執行完整整合測試
+./scripts/integration-test.sh
+
+# 等待服務就緒後執行
+./scripts/integration-test.sh --wait
+
+# 只執行健康檢查
+./scripts/integration-test.sh --health-only
+
+# 只執行 API 測試
+./scripts/integration-test.sh --api-only
+
+# 快速煙霧測試
+./scripts/smoke-test.sh
+```
+
+**測試項目：**
+
+| 類別 | 測試項目 | 說明 |
+|------|---------|------|
+| 健康檢查 | 服務健康狀態 | 驗證所有服務正常運行 |
+| API 測試 | 天氣查詢 API | 驗證 TPE/TXG/KHH 查詢 |
+| 錯誤處理 | 無效城市代碼 | 驗證錯誤回應 |
+| 追蹤測試 | Trace ID 傳遞 | 驗證追蹤標頭存在 |
+| 可觀測性 | Jaeger 追蹤 | 驗證追蹤資料匯出 |
 
 ### 步驟三：存取服務
 
