@@ -10,12 +10,13 @@
 
 1. [專案概述](#專案概述)
 2. [快速開始](#快速開始)
-3. [系統架構](#系統架構)
-4. [可觀測性深入解析](#可觀測性深入解析)
-5. [開發工具](#開發工具)
-6. [測試範例](#測試範例)
-7. [技術堆疊](#技術堆疊)
-8. [專案結構](#專案結構)
+3. [Kubernetes 部署](#kubernetes-部署)
+4. [系統架構](#系統架構)
+5. [可觀測性深入解析](#可觀測性深入解析)
+6. [開發工具](#開發工具)
+7. [測試範例](#測試範例)
+8. [技術堆疊](#技術堆疊)
+9. [專案結構](#專案結構)
 
 ---
 
@@ -100,6 +101,248 @@ cd frontend && npm install && npm run dev
 | Jaeger UI | http://localhost:16686 | 追蹤視覺化 |
 | Prometheus | http://localhost:9090 | 指標資料庫 |
 | Grafana | http://localhost:3000 | 儀表板 |
+
+---
+
+## Kubernetes 部署
+
+本專案支援使用 Kind (Kubernetes IN Docker) 進行本地 Kubernetes 部署，適合學習和測試。
+
+### 架構概覽
+
+```mermaid
+flowchart TB
+    subgraph Kind Cluster
+        subgraph Ingress
+            NGINX[NGINX Ingress<br/>:8000]
+        end
+
+        subgraph Application
+            Frontend[frontend<br/>Deployment ×2]
+            Gateway[gateway<br/>Deployment ×2]
+            WeatherService[weather-service<br/>Deployment ×2]
+        end
+
+        subgraph Observability
+            OTel[otel-collector]
+            Jaeger[jaeger]
+            Prometheus[prometheus]
+            Grafana[grafana]
+        end
+    end
+
+    User([使用者]) --> NGINX
+    NGINX --> Frontend
+    NGINX --> Gateway
+    Gateway --> WeatherService
+    WeatherService --> OTel
+    OTel --> Jaeger
+```
+
+### 前置需求
+
+| 工具 | 安裝指令 (macOS) | 說明 |
+|------|-----------------|------|
+| Docker | [Docker Desktop](https://www.docker.com/products/docker-desktop/) | 容器執行環境 |
+| Kind | `brew install kind` | 本地 K8s 叢集 |
+| kubectl | `brew install kubectl` | K8s CLI 工具 |
+
+### 步驟一：建立 Kind 叢集
+
+```bash
+# 建立叢集
+./scripts/kind-cluster.sh create
+
+# 安裝 NGINX Ingress Controller
+./scripts/kind-cluster.sh ingress
+```
+
+**叢集管理指令：**
+
+```bash
+# 檢查叢集狀態
+./scripts/kind-cluster.sh status
+
+# 顯示叢集資訊
+./scripts/kind-cluster.sh info
+
+# 刪除叢集
+./scripts/kind-cluster.sh delete
+```
+
+### 步驟二：建置與載入映像檔
+
+```bash
+# 建置 Docker 映像檔
+./scripts/k8s-deploy.sh build
+
+# 載入映像檔到 Kind 叢集
+./scripts/k8s-deploy.sh load
+```
+
+### 步驟三：部署應用程式
+
+```bash
+# 部署到 Kubernetes
+./scripts/k8s-deploy.sh deploy
+
+# 或一次執行完整流程（build + load + deploy）
+./scripts/k8s-deploy.sh all
+```
+
+### 步驟四：存取服務
+
+#### 方式 A：設定 /etc/hosts（推薦）
+
+```bash
+# 編輯 /etc/hosts，加入以下內容
+sudo nano /etc/hosts
+
+# 加入：
+127.0.0.1 weather.local jaeger.local grafana.local prometheus.local
+```
+
+存取服務：
+
+| 服務 | 網址 | 說明 |
+|------|------|------|
+| 前端 | http://weather.local:8000 | Web 介面 |
+| API | http://weather.local:8000/api | API 端點 |
+| Jaeger | http://jaeger.local:8000 | 追蹤 UI |
+| Prometheus | http://prometheus.local:8000 | 指標查詢 |
+| Grafana | http://grafana.local:8000 | 儀表板 (admin/admin) |
+
+#### 方式 B：使用 Port Forward
+
+```bash
+# 前端 (另開終端機)
+kubectl port-forward -n weather-tracing svc/frontend 8080:80
+
+# 閘道器 API
+kubectl port-forward -n weather-tracing svc/gateway 8081:8080
+
+# Jaeger UI
+kubectl port-forward -n weather-tracing svc/jaeger 16686:16686
+
+# Grafana
+kubectl port-forward -n weather-tracing svc/grafana 3000:3000
+```
+
+### 部署管理指令
+
+```bash
+# 檢查部署狀態
+./scripts/k8s-deploy.sh status
+
+# 顯示存取資訊
+./scripts/k8s-deploy.sh access
+
+# 查看閘道器日誌
+./scripts/k8s-deploy.sh logs gateway
+
+# 查看天氣服務日誌
+./scripts/k8s-deploy.sh logs weather-service
+
+# 重新部署（重新建置映像檔）
+./scripts/k8s-deploy.sh redeploy
+
+# 刪除所有 K8s 資源
+./scripts/k8s-deploy.sh undeploy
+```
+
+### 測試 Kubernetes 部署
+
+```bash
+# 執行快速測試
+./scripts/k8s-deploy.sh test
+
+# 手動測試 API（使用 port-forward）
+kubectl port-forward -n weather-tracing svc/gateway 8080:8080 &
+curl http://localhost:8080/api/weather/TPE | jq
+```
+
+### Kubernetes 資源結構
+
+```mermaid
+flowchart TB
+    subgraph Namespace: weather-tracing
+        subgraph Deployments
+            D1[weather-service<br/>replicas: 2]
+            D2[gateway<br/>replicas: 2]
+            D3[frontend<br/>replicas: 2]
+            D4[otel-collector<br/>replicas: 1]
+            D5[jaeger<br/>replicas: 1]
+            D6[prometheus<br/>replicas: 1]
+            D7[grafana<br/>replicas: 1]
+        end
+
+        subgraph Services
+            S1[weather-service<br/>ClusterIP:8081]
+            S2[gateway<br/>ClusterIP:8080]
+            S3[frontend<br/>ClusterIP:80]
+            S4[otel-collector<br/>ClusterIP:4317]
+            S5[jaeger<br/>ClusterIP:16686]
+            S6[prometheus<br/>ClusterIP:9090]
+            S7[grafana<br/>ClusterIP:3000]
+        end
+
+        subgraph Ingress
+            I1[weather.local → frontend, gateway]
+            I2[jaeger.local → jaeger]
+            I3[grafana.local → grafana]
+            I4[prometheus.local → prometheus]
+        end
+    end
+
+    D1 --> S1
+    D2 --> S2
+    D3 --> S3
+    D4 --> S4
+    D5 --> S5
+    D6 --> S6
+    D7 --> S7
+
+    I1 --> S3
+    I1 --> S2
+    I2 --> S5
+    I3 --> S7
+    I4 --> S6
+```
+
+### 故障排除
+
+**叢集建立失敗（Port 衝突）：**
+
+```bash
+# 檢查哪個程式佔用 port
+lsof -i :80
+lsof -i :8000
+
+# 停止佔用 port 的服務或修改 scripts/kind-config.yaml
+```
+
+**Pod 無法啟動：**
+
+```bash
+# 檢查 Pod 狀態
+kubectl get pods -n weather-tracing
+
+# 查看 Pod 詳情
+kubectl describe pod <pod-name> -n weather-tracing
+
+# 查看 Pod 日誌
+kubectl logs <pod-name> -n weather-tracing
+```
+
+**映像檔未找到：**
+
+```bash
+# 確認映像檔已建置
+docker images | grep -E "weather-service|gateway|frontend"
+
+# 重新載入映像檔到 Kind
+./scripts/k8s-deploy.sh load
+```
 
 ---
 

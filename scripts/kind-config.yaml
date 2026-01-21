@@ -1,0 +1,38 @@
+# Kind 叢集配置
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: weather-tracing
+nodes:
+  # Control plane node
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      # HTTP (使用 8000 避免與其他服務衝突)
+      - containerPort: 80
+        hostPort: 8000
+        protocol: TCP
+      # HTTPS
+      - containerPort: 443
+        hostPort: 8443
+        protocol: TCP
+      # NodePort 範圍（用於直接存取服務）
+      - containerPort: 30080
+        hostPort: 30080
+        protocol: TCP
+      - containerPort: 30081
+        hostPort: 30081
+        protocol: TCP
+      - containerPort: 30090
+        hostPort: 30090
+        protocol: TCP
+      - containerPort: 30686
+        hostPort: 30686
+        protocol: TCP
+      - containerPort: 30300
+        hostPort: 30300
+        protocol: TCP
