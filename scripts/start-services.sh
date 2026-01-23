@@ -84,7 +84,7 @@ start_observability() {
 
 # 啟動天氣服務
 start_weather_service() {
-    log_step "啟動天氣服務 (port 8081)..."
+    log_step "啟動天氣服務 (port 8083)..."
     cd "$PROJECT_ROOT/weather-service"
 
     # 使用 bootRun 背景執行
@@ -94,8 +94,8 @@ start_weather_service() {
     # 等待服務啟動
     log_info "等待天氣服務啟動..."
     for i in {1..60}; do
-        if curl -s http://localhost:8081/actuator/health > /dev/null 2>&1; then
-            log_success "天氣服務已啟動: http://localhost:8081"
+        if curl -s http://localhost:8083/actuator/health > /dev/null 2>&1; then
+            log_success "天氣服務已啟動: http://localhost:8083"
             return 0
         fi
         sleep 2
@@ -106,7 +106,7 @@ start_weather_service() {
 
 # 啟動閘道器
 start_gateway() {
-    log_step "啟動閘道器 (port 8080)..."
+    log_step "啟動閘道器 (port 8084)..."
     cd "$PROJECT_ROOT/gateway"
 
     nohup ../gradlew bootRun --quiet > "$PID_DIR/gateway.log" 2>&1 &
@@ -114,8 +114,8 @@ start_gateway() {
 
     log_info "等待閘道器啟動..."
     for i in {1..60}; do
-        if curl -s http://localhost:8080/actuator/health > /dev/null 2>&1; then
-            log_success "閘道器已啟動: http://localhost:8080"
+        if curl -s http://localhost:8084/actuator/health > /dev/null 2>&1; then
+            log_success "閘道器已啟動: http://localhost:8084"
             return 0
         fi
         sleep 2
@@ -177,7 +177,7 @@ stop_services() {
 
     # 停止 Gradle daemon 相關的 Java 程序
     pkill -f "weather-service" 2>/dev/null || true
-    pkill -f "gateway.*8080" 2>/dev/null || true
+    pkill -f "gateway.*8084" 2>/dev/null || true
 
     # 停止 Docker 可觀測性堆疊
     cd "$PROJECT_ROOT"
@@ -198,8 +198,8 @@ show_status() {
 
     # 檢查各服務
     local services=(
-        "天氣服務|http://localhost:8081/actuator/health"
-        "閘道器|http://localhost:8080/actuator/health"
+        "天氣服務|http://localhost:8083/actuator/health"
+        "閘道器|http://localhost:8084/actuator/health"
         "前端|http://localhost:5173"
         "Jaeger|http://localhost:16686"
         "Prometheus|http://localhost:9090/-/healthy"
@@ -229,10 +229,10 @@ show_access_info() {
     echo ""
     echo "  應用程式:"
     echo "    前端介面      http://localhost:5173"
-    echo "    閘道器 API    http://localhost:8080/api"
-    echo "    天氣服務      http://localhost:8081"
-    echo "    Swagger UI    http://localhost:8081/swagger-ui.html"
-    echo "    H2 Console    http://localhost:8081/h2-console"
+    echo "    閘道器 API    http://localhost:8084/api"
+    echo "    天氣服務      http://localhost:8083"
+    echo "    Swagger UI    http://localhost:8083/swagger-ui.html"
+    echo "    H2 Console    http://localhost:8083/h2-console"
     echo ""
     echo "  可觀測性:"
     echo "    Jaeger UI     http://localhost:16686"
@@ -240,7 +240,7 @@ show_access_info() {
     echo "    Grafana       http://localhost:3000 (admin/admin)"
     echo ""
     echo "  測試 API:"
-    echo "    curl http://localhost:8080/api/weather/TPE | jq"
+    echo "    curl http://localhost:8084/api/weather/TPE | jq"
     echo ""
 }
 

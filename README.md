@@ -156,10 +156,10 @@ docker compose down
 | 服務 | 網址 | 說明 |
 |------|------|------|
 | 前端介面 | http://localhost:5173 | Vue.js 網頁 UI |
-| 閘道器 API | http://localhost:8080/api | API 閘道器 |
-| 天氣服務 | http://localhost:8081 | 後端服務 |
-| **Swagger UI** | http://localhost:8081/swagger-ui.html | API 文件 |
-| **H2 Console** | http://localhost:8081/h2-console | 資料庫控制台 |
+| 閘道器 API | http://localhost:8084/api | API 閘道器 |
+| 天氣服務 | http://localhost:8083 | 後端服務 |
+| **Swagger UI** | http://localhost:8083/swagger-ui.html | API 文件 |
+| **H2 Console** | http://localhost:8083/h2-console | 資料庫控制台 |
 | Jaeger UI | http://localhost:16686 | 追蹤視覺化 |
 | Prometheus | http://localhost:9090 | 指標資料庫 |
 | Grafana | http://localhost:3000 | 儀表板 |
@@ -320,7 +320,7 @@ kubectl port-forward -n weather-tracing svc/grafana 3000:3000
 
 # 手動測試 API（使用 port-forward）
 kubectl port-forward -n weather-tracing svc/gateway 8080:8080 &
-curl http://localhost:8080/api/weather/TPE | jq
+curl http://localhost:8084/api/weather/TPE | jq
 ```
 
 ### Kubernetes 資源結構
@@ -419,7 +419,7 @@ flowchart TB
     end
 
     subgraph 服務層
-        Gateway[API 閘道器<br/>Spring Cloud Gateway<br/>localhost:8080]
+        Gateway[API 閘道器<br/>Spring Cloud Gateway<br/>localhost:8084]
 
         subgraph WeatherService[天氣服務 - 六角形架構]
             subgraph Infrastructure[基礎設施層]
@@ -767,13 +767,13 @@ Swagger UI 提供互動式的 API 文件，讓您可以直接在瀏覽器中測�
 
 | 資源 | 網址 |
 |------|------|
-| Swagger UI | http://localhost:8081/swagger-ui.html |
-| OpenAPI JSON | http://localhost:8081/v3/api-docs |
-| OpenAPI YAML | http://localhost:8081/v3/api-docs.yaml |
+| Swagger UI | http://localhost:8083/swagger-ui.html |
+| OpenAPI JSON | http://localhost:8083/v3/api-docs |
+| OpenAPI YAML | http://localhost:8083/v3/api-docs.yaml |
 
 #### 使用步驟
 
-1. **開啟 Swagger UI**：瀏覽 http://localhost:8081/swagger-ui.html
+1. **開啟 Swagger UI**：瀏覽 http://localhost:8083/swagger-ui.html
 2. **選擇 API 端點**：點擊 `GET /weather/{cityCode}` 展開
 3. **測試 API**：
    - 點擊「Try it out」按鈕
@@ -825,7 +825,7 @@ CREATE TABLE weather_data (
 
 ```bash
 # 查詢台北天氣
-curl -X GET "http://localhost:8080/api/weather/TPE" \
+curl -X GET "http://localhost:8084/api/weather/TPE" \
   -H "Accept: application/json" | jq
 ```
 
@@ -852,19 +852,19 @@ curl -X GET "http://localhost:8080/api/weather/TPE" \
 
 ```bash
 # 台北
-curl -s "http://localhost:8080/api/weather/TPE" | jq '.data.cityName, .data.temperature'
+curl -s "http://localhost:8084/api/weather/TPE" | jq '.data.cityName, .data.temperature'
 
 # 台中
-curl -s "http://localhost:8080/api/weather/TXG" | jq '.data.cityName, .data.temperature'
+curl -s "http://localhost:8084/api/weather/TXG" | jq '.data.cityName, .data.temperature'
 
 # 高雄
-curl -s "http://localhost:8080/api/weather/KHH" | jq '.data.cityName, .data.temperature'
+curl -s "http://localhost:8084/api/weather/KHH" | jq '.data.cityName, .data.temperature'
 ```
 
 #### 3. 檢查回應標頭
 
 ```bash
-curl -i "http://localhost:8080/api/weather/TPE"
+curl -i "http://localhost:8084/api/weather/TPE"
 
 # 預期標頭：
 # X-Trace-Id: 4bf92f3577b34da6a3ce929d0e0e4736
@@ -876,7 +876,7 @@ curl -i "http://localhost:8080/api/weather/TPE"
 
 ```bash
 # 發送請求並擷取 Trace ID
-TRACE_ID=$(curl -s -i "http://localhost:8080/api/weather/TPE" | grep -i "x-trace-id" | cut -d' ' -f2 | tr -d '\r')
+TRACE_ID=$(curl -s -i "http://localhost:8084/api/weather/TPE" | grep -i "x-trace-id" | cut -d' ' -f2 | tr -d '\r')
 
 echo "Trace ID: $TRACE_ID"
 echo "在 Jaeger 查看: http://localhost:16686/trace/$TRACE_ID"
@@ -886,17 +886,17 @@ echo "在 Jaeger 查看: http://localhost:16686/trace/$TRACE_ID"
 
 ```bash
 # 無效城市代碼（預期 400 Bad Request）
-curl -s "http://localhost:8080/api/weather/INVALID" | jq
+curl -s "http://localhost:8084/api/weather/INVALID" | jq
 ```
 
 #### 6. 健康檢查
 
 ```bash
 # 天氣服務健康檢查
-curl -s "http://localhost:8081/actuator/health" | jq
+curl -s "http://localhost:8083/actuator/health" | jq
 
 # 閘道器健康檢查
-curl -s "http://localhost:8080/actuator/health" | jq
+curl -s "http://localhost:8084/actuator/health" | jq
 ```
 
 ### 整合測試
@@ -1033,7 +1033,7 @@ tracing-microservices-poc/
 **請求：**
 ```http
 GET /api/weather/TPE HTTP/1.1
-Host: localhost:8080
+Host: localhost:8084
 ```
 
 **回應：**

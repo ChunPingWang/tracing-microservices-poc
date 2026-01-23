@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT:8084}
 
 spring:
   application:
@@ -8,13 +8,13 @@ spring:
     gateway:
       routes:
         - id: weather-service
-          uri: ${WEATHER_SERVICE_URL:http://localhost:8081}
+          uri: ${WEATHER_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/weather/**
           filters:
             - RewritePath=/api/(?<segment>.*), /$\{segment}
         - id: weather-service-actuator
-          uri: ${WEATHER_SERVICE_URL:http://localhost:8081}
+          uri: ${WEATHER_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/actuator/**
           filters:
